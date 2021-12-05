@@ -1,3 +1,38 @@
+# ============================================================
+# Movie data (not sure if all this is needed)
+# ============================================================
+
+library(data.table)
+library(dplyr)
+
+# read in data
+myurl = "https://liangfgithub.github.io/MovieData/"
+movies = readLines(paste0(myurl, 'movies.dat?raw=true'))
+movies = strsplit(movies, split = "::", fixed = TRUE, useBytes = TRUE)
+movies = matrix(unlist(movies), ncol = 3, byrow = TRUE)
+movies = data.frame(movies, stringsAsFactors = FALSE)
+colnames(movies) = c('MovieID', 'Title', 'Genres')
+movies$MovieID = as.integer(movies$MovieID)
+movies$Title = iconv(movies$Title, "latin1", "UTF-8")
+
+small_image_url = "https://liangfgithub.github.io/MovieImages/"
+movies$image_url = sapply(movies$MovieID, 
+                          function(x) paste0(small_image_url, x, '.jpg?raw=true'))
+
+movies$seqno = 1:nrow(movies)
+
+# Splitting the genres into different Movie genre columns
+movie_genre_df = as.data.frame(movies$Genres,stringsAsFactors = FALSE)
+movie_genre_df = as.data.frame(tstrsplit(movie_genre_df[,1],"[|]",type.convert = TRUE))
+colnames(movie_genre_df) = c("Genre1","Genre2","Genre3","Genre4","Genre5","Genre6")
+movie_genre_df[,"MovieID"] = movies$MovieID
+
+# reading the ratings data
+ratings = read.csv(file = './data/ratings/ratings.dat', 
+                   sep = ':',
+                   colClasses = c('integer', 'NULL'), 
+                   header = FALSE)
+colnames(ratings) = c('UserID', 'MovieID', 'Rating', 'Timestamp')
 
 # ============================================================
 # Function used for recommending based on genre
@@ -13,6 +48,8 @@ get_movie_genre_recomm1 = function(genre_input,movie_genre,ratings) {
   }
   
   dat.query = filter(movie_genre, Genre1==userSelectedGenre|Genre2==userSelectedGenre|Genre3==userSelectedGenre|Genre4==userSelectedGenre|Genre5==userSelectedGenre|Genre6==userSelectedGenre)
+  shinyjs::logjs(colnames(dat.query))
+  
   MoviesByGenre = ratings %>% filter(MovieID %in% dat.query$MovieID)
   
   totalmovies = nrow(dat.query)

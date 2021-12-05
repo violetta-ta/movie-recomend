@@ -28,8 +28,14 @@ shinyUI(
 
                 .box.box-solid.box-primary>.box-header {
                   color:#fff;
-                  background:#292828
-                                    }
+                  background:#292828;
+                  height:50%
+                }
+                                    
+                .box-header h3.box-title {
+                  font-size: 24px;
+                  padding: 5px;
+                }
                 
                 .box.box-solid.box-primary{
                   border-bottom-color:#292828;
@@ -37,22 +43,36 @@ shinyUI(
                   border-right-color:#292828;
                   border-top-color:#292828;
                 }
-
                           ")),
               tabItems(
                 tabItem(tabName = "recommenderByGenre",
                     fluidRow(
-                      h3("Select your favorite genre: "),
-                      column(width = 3, offset = 2, 
-                             selectInput("genres", "Genres", 
-                                         c("Action", "Adventure", "Animation", 
-                                            "Children's", "Comedy", "Crime",
-                                            "Documentary", "Drama", "Fantasy",
-                                            "Film-Noir", "Horror", "Musical", 
-                                            "Mystery", "Romance", "Sci-Fi", 
-                                            "Thriller", "War", "Western"))
+                      box(width = 12, status = "primary", solidHeader = TRUE, collapsible = FALSE,
+                          title = "Select your favorite genre: ",
+                          column(width = 3,
+                                 selectInput("genres", "Genres", 
+                                             c("Action", "Adventure", "Animation", 
+                                               "Children's", "Comedy", "Crime",
+                                               "Documentary", "Drama", "Fantasy",
+                                               "Film-Noir", "Horror", "Musical", 
+                                               "Mystery", "Romance", "Sci-Fi", 
+                                               "Thriller", "War", "Western"))
+                          ),
+                          column(width = 3,
+                                 br(),
+                                 withBusyIndicatorUI(
+                                   actionButton("btn1", "Click here to get your recommendations", class = "btn-warning")
+                                 )
+                          )
                       ),
-                    ),
+                      
+                      box(width = 12, status = "primary", solidHeader = TRUE,
+                          title = "Most popular movies of that genre: ",
+                          br(),
+                          tableOutput("results_system1")
+                        
+                      )
+                    )
                 ),
                 
                 tabItem(tabName = "recommenderByRating",
@@ -72,10 +92,10 @@ shinyUI(
                         title = "Step 2: Discover movies you might like",
                         br(),
                         withBusyIndicatorUI(
-                          actionButton("btn", "Click here to get your recommendations", class = "default")
+                          actionButton("btn2", "Click here to get your recommendations", class = "btn-warning")
                         ),
                         br(),
-                        tableOutput("results")
+                        tableOutput("results_system2")
                       )
                     )
                 )

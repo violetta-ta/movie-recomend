@@ -3,6 +3,8 @@
 # load functions
 source('functions/cf_algorithm.R') # collaborative filtering
 source('functions/similarity_measures.R') # similarity measures
+source('functions/genre_algorithm.R') #genre algo, system 1
+source('functions/helpers.R')
 
 # define functions
 get_user_ratings = function(value_list) {
@@ -29,8 +31,76 @@ small_image_url = "https://liangfgithub.github.io/MovieImages/"
 movies$image_url = sapply(movies$MovieID, 
                           function(x) paste0(small_image_url, x, '.jpg?raw=true'))
 
+movies$seqno = 1:nrow(movies)
+
+# Splitting the genres into different Movie genre columns
+movie_genre_df = as.data.frame(movies$Genres,stringsAsFactors = FALSE)
+movie_genre_df = as.data.frame(tstrsplit(movie_genre_df[,1],"[|]",type.convert = TRUE))
+colnames(movie_genre_df) = c("Genre1","Genre2","Genre3","Genre4","Genre5","Genre6")
+movie_genre_df[,"MovieID"] = movies$MovieID
+
+# reading the ratings data
+ratings = read.csv(file = './data/ratings/ratings.dat', 
+                   sep = ':',
+                   colClasses = c('integer', 'NULL'), 
+                   header = FALSE)
+colnames(ratings) = c('UserID', 'MovieID', 'Rating', 'Timestamp')
+
+
 shinyServer(function(input, output, session) {
+  # =============
+  #System 1 
+  # =============
   
+  
+  df_system1 <- eventReactive(input$btn1, {
+    withBusyIndicatorServer("btn1", { # showing the busy indicator
+      # hide the rating container
+      #useShinyjs()
+      #jsCode <- "document.querySelector('[data-widget=collapse]').click();"
+      #runjs(jsCode)
+      
+      #get input
+      genreSelected = input$genres
+      
+      user_results = (1:10)/10
+      user_predicted_ids = get_movie_genre_recomm1(genreSelected, movie_genre_df, ratings)
+      recom_results <- data.table(Rank = 1:10, 
+                                  MovieID = movies$MovieID[user_predicted_ids], 
+                                  Title = movies$Title[user_predicted_ids], 
+                                  Predicted_rating =  user_results)
+     
+   }) # still busy
+   
+  })
+  
+  
+  output$results_system1 <- renderUI({
+   num_rows <- 2
+   num_movies <- 5
+   recom_result <- df_system1()
+    
+    lapply(1:num_rows, function(i) {
+      list(fluidRow(lapply(1:num_movies, function(j) {
+        box(width = 2, status = "success", solidHeader = TRUE, title = paste0("Rank ", (i - 1) * num_movies + j),
+            
+           div(style = "text-align:center", 
+                a(img(src = movies$image_url[recom_result$MovieID[(i - 1) * num_movies + j]], height = 150))
+           ),
+          div(style="text-align:center; font-size: 100%", 
+              strong(movies$Title[recom_result$MovieID[(i - 1) * num_movies + j]])
+          )
+            
+       )        
+     }))) # columns
+   }) # rows
+    
+   })# renderUI
+  
+  
+  # =============
+  #System 2 
+  # =============
   # show the books to be rated
   output$ratings <- renderUI({
     num_rows <- 20
@@ -48,8 +118,8 @@ shinyServer(function(input, output, session) {
   })
   
   # Calculate recommendations when the sbumbutton is clicked
-  df <- eventReactive(input$btn, {
-    withBusyIndicatorServer("btn", { # showing the busy indicator
+  df_system2 <- eventReactive(input$btn2, {
+    withBusyIndicatorServer("btn2", { # showing the busy indicator
       # hide the rating container
       useShinyjs()
       jsCode <- "document.querySelector('[data-widget=collapse]').click();"
@@ -72,10 +142,10 @@ shinyServer(function(input, output, session) {
   
   
   # display the recommendations
-  output$results <- renderUI({
+  output$results_system2 <- renderUI({
     num_rows <- 2
     num_movies <- 5
-    recom_result <- df()
+    recom_result <- df_system2()
     
     lapply(1:num_rows, function(i) {
       list(fluidRow(lapply(1:num_movies, function(j) {
