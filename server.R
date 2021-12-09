@@ -46,6 +46,26 @@ ratings = read.csv(file = './data/ratings/ratings.dat',
                    header = FALSE)
 colnames(ratings) = c('UserID', 'MovieID', 'Rating', 'Timestamp')
 
+#Creating Rating Matrix
+i = paste0('u', ratings$UserID)
+j = paste0('m', ratings$MovieID)
+x = ratings$Rating
+tmp = data.frame(i, j, x, stringsAsFactors = T)
+Rmat = sparseMatrix(as.integer(tmp$i), as.integer(tmp$j), x = tmp$x)
+rownames(Rmat) = levels(tmp$i)
+colnames(Rmat) = levels(tmp$j)
+Rmat = new('realRatingMatrix', data = Rmat)
+
+#Creating the test/training split
+schema_1 = evaluationScheme(Rmat, method="split", train=0.8, given=15, k=1)
+
+#Training the recommender. This and the previous steps need to be performed at the runtime of the app, as they all take around 3 minutes.
+rec_UBCF1 = Recommender(getData(schema_1, "train"), method = 'UBCF',
+                        parameter = list(normalize = 'Z-score', 
+                                         method = 'Cosine',
+                                         weighted = TRUE,
+                                         nn = 25))
+
 
 shinyServer(function(input, output, session) {
   # =============
@@ -128,9 +148,15 @@ shinyServer(function(input, output, session) {
       # get the user's rating data
       value_list <- reactiveValuesToList(input)
       user_ratings <- get_user_ratings(value_list)
+      shinyjs::logjs(user_ratings)
+      
+      j = user_ratings$MovieID
+      x = user_ratings$Rating
+      print(j)
+      print(x)
       
       user_results = (1:10)/10
-      user_predicted_ids = 1:10
+      user_predicted_ids = predict_cf(Rmat, rec_UBCF1, schema_1, j, x)
       recom_results <- data.table(Rank = 1:10, 
                                   MovieID = movies$MovieID[user_predicted_ids], 
                                   Title = movies$Title[user_predicted_ids], 
