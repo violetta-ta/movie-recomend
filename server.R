@@ -56,16 +56,17 @@ rownames(Rmat) = levels(tmp$i)
 colnames(Rmat) = levels(tmp$j)
 Rmat = new('realRatingMatrix', data = Rmat)
 
+#set.seed(100)
+
 #Creating the test/training split
-schema_1 = evaluationScheme(Rmat, method="split", train=0.8, given=15, k=1)
+#schema_1 = evaluationScheme(Rmat, method="split", train=0.8, given=15, k=1)
 
 #Training the recommender. This and the previous steps need to be performed at the runtime of the app, as they all take around 3 minutes.
-rec_UBCF1 = Recommender(getData(schema_1, "train"), method = 'UBCF',
-                        parameter = list(normalize = 'Z-score', 
-                                         method = 'Cosine',
-                                         weighted = TRUE,
-                                         nn = 25))
-
+#rec_UBCF1 = Recommender(getData(schema_1, "train"), method = 'UBCF',
+#                        parameter = list(normalize = 'Z-score', 
+#                                         method = 'Cosine',
+#                                         weighted = TRUE,
+#                                         nn = 25))
 
 shinyServer(function(input, output, session) {
   # =============
@@ -156,7 +157,7 @@ shinyServer(function(input, output, session) {
       print(x)
       
       user_results = (1:10)/10
-      user_predicted_ids = predict_cf(Rmat, rec_UBCF1, schema_1, j, x)
+      user_predicted_ids = predict_cf(Rmat, j, x)
       recom_results <- data.table(Rank = 1:10, 
                                   MovieID = movies$MovieID[user_predicted_ids], 
                                   Title = movies$Title[user_predicted_ids], 

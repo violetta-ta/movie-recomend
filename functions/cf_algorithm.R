@@ -9,22 +9,22 @@ library(recommenderlab)
 library(slam)
 library(data.table)
 
-#ratings = read.csv(file = './data/ratings/ratings.dat', 
-#                   sep = ':',
-#                   colClasses = c('integer', 'NULL'), 
-#                   header = FALSE)
-#colnames(ratings) = c('UserID', 'MovieID', 'Rating', 'Timestamp')
-#ratings$Timestamp = NULL
+ratings = read.csv(file = './data/ratings/ratings.dat', 
+                   sep = ':',
+                   colClasses = c('integer', 'NULL'), 
+                   header = FALSE)
+colnames(ratings) = c('UserID', 'MovieID', 'Rating', 'Timestamp')
+ratings$Timestamp = NULL
 
 #Creating Rating Matrix
-#i = paste0('u', ratings$UserID)
-#j = paste0('m', ratings$MovieID)
-#x = ratings$Rating
-#tmp = data.frame(i, j, x, stringsAsFactors = T)
-#Rmat = sparseMatrix(as.integer(tmp$i), as.integer(tmp$j), x = tmp$x)
-#rownames(Rmat) = levels(tmp$i)
-#colnames(Rmat) = levels(tmp$j)
-#Rmat = new('realRatingMatrix', data = Rmat)
+i = paste0('u', ratings$UserID)
+j = paste0('m', ratings$MovieID)
+x = ratings$Rating
+tmp = data.frame(i, j, x, stringsAsFactors = T)
+Rmat = sparseMatrix(as.integer(tmp$i), as.integer(tmp$j), x = tmp$x)
+rownames(Rmat) = levels(tmp$i)
+colnames(Rmat) = levels(tmp$j)
+Rmat = new('realRatingMatrix', data = Rmat)
 
 #Creating the test/training split
 #schema_1 = evaluationScheme(Rmat, method="split", train=0.8, given=15, k=1)
@@ -35,8 +35,8 @@ library(data.table)
 #                                         method = 'Cosine', 
 #                                         k = 25))
 
-predict_cf = function(Rmat, rec_UBCF1, schema_1, user_MovieID, Rating){
-  #Creating the rating matrix from new user ratings (described in #1194). Need to be reworked for new record of real app user
+predict_cf = function(Rmat, user_MovieID, Rating){
+  set.seed(100)
   
   #Creating the test/training split
   schema_1 = evaluationScheme(Rmat, method="split", train=0.8, given=15, k=1)
@@ -63,7 +63,9 @@ predict_cf = function(Rmat, rec_UBCF1, schema_1, user_MovieID, Rating){
                     ))
   
   for (q in 1:length(renamed_user_movieIDs)){
-    new.user[1,(renamed_user_movieIDs[q])] = Rating[q]
+    if(renamed_user_movieIDs[q]!= "m1" && renamed_user_movieIDs[q]!= "m2" && renamed_user_movieIDs[q]!= "m3" && renamed_user_movieIDs[q]!= "m4"){
+      new.user[1,(renamed_user_movieIDs[q])] = Rating[q]
+    }
   }
   
   new.Rmat = as(new.user, 'realRatingMatrix')
@@ -81,6 +83,7 @@ predict_cf = function(Rmat, rec_UBCF1, schema_1, user_MovieID, Rating){
     film_str_length = nchar(df[order(-df$rating),][i, 1])
     pred_id[i] = strtoi(substr(df[order(-df$rating),][i, 1], 2, film_str_length))
   }
+  print(pred_id)
   pred_id
 }
 
