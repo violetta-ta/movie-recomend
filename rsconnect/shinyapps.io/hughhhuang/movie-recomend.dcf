@@ -1,0 +1,11 @@
+name: movie-recomend
+title:
+username:
+account: hughhhuang
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 5249559
+bundleId: 5352837
+url: https://hughhhuang.shinyapps.io/movie-recomend/
+when: 1639092567.30209
+lastSyncTime: 1639092567.30209
