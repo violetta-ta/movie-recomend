@@ -153,11 +153,14 @@ shinyServer(function(input, output, session) {
       
       j = user_ratings$MovieID
       x = user_ratings$Rating
-      print(j)
-      print(x)
+      #print(j)
+      #print(x)
       
       user_results = (1:10)/10
-      user_predicted_ids = predict_cf(Rmat, j, x)
+      user_predicted_ids = 1:10
+      if (length(x) != 0){
+        user_predicted_ids = predict_cf(Rmat, j, x)
+      }
       recom_results <- data.table(Rank = 1:10, 
                                   MovieID = movies$MovieID[user_predicted_ids], 
                                   Title = movies$Title[user_predicted_ids], 
