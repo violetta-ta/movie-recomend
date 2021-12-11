@@ -35,7 +35,7 @@ predict_cf = function(Rmat, user_MovieID, Rating){
   #Creating the test/training split
   schema_1 = evaluationScheme(Rmat, method="split", train=0.8, given=15, k=1)
   
-  #Training the recommender. This and the previous steps need to be performed at the runtime of the app, as they all take around 3 minutes.
+  #Training the recommender. 
   rec_UBCF1 = Recommender(getData(schema_1, "train"), method = 'UBCF',
                           parameter = list(normalize = 'Z-score', 
                                            method = 'Cosine',
