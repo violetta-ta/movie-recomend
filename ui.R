@@ -1,4 +1,7 @@
 ## ui.R
+
+# This application uses code provided at: https://github.com/pspachtholz/BookRecommender
+
 library(shiny)
 library(shinydashboard)
 library(recommenderlab)

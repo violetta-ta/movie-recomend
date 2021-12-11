@@ -1,5 +1,7 @@
 ## server.R
 
+# This application uses code provided at: https://github.com/pspachtholz/BookRecommender
+
 # load functions
 source('functions/cf_algorithm.R') # collaborative filtering
 source('functions/similarity_measures.R') # similarity measures

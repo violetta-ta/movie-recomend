@@ -1,6 +1,7 @@
 # ============================================================
-# Movie data (not sure if all this is needed)
+# Function used for recommending based on genre
 # ============================================================
+# This function implements System 1 approach A algorithm as described in report
 
 library(data.table)
 library(dplyr)
@@ -34,9 +35,7 @@ ratings = read.csv(file = './data/ratings/ratings.dat',
                    header = FALSE)
 colnames(ratings) = c('UserID', 'MovieID', 'Rating', 'Timestamp')
 
-# ============================================================
-# Function used for recommending based on genre
-# ============================================================
+#prediction function, generate movie ID recommendations
 
 get_movie_genre_recomm1 = function(genre_input,movie_genre,ratings) {
   

@@ -2,13 +2,14 @@
 # ============================================================
 # Functions used in implementation of collaborative filtering.
 # ============================================================
-
+# This function implements UBCF - System 2 User based rating system described in report
 
 library(Matrix)
 library(recommenderlab)
 library(slam)
 library(data.table)
 
+# read in data
 ratings = read.csv(file = './data/ratings/ratings.dat', 
                    sep = ':',
                    colClasses = c('integer', 'NULL'), 
@@ -26,14 +27,7 @@ rownames(Rmat) = levels(tmp$i)
 colnames(Rmat) = levels(tmp$j)
 Rmat = new('realRatingMatrix', data = Rmat)
 
-#Creating the test/training split
-#schema_1 = evaluationScheme(Rmat, method="split", train=0.8, given=15, k=1)
-
-#Training the recommender. This and the previous steps need to be performed at the runtime of the app, as they all take around 3 minutes.
-#rec_UBCF1 = Recommender(getData(schema_1, "train"), method = 'UBCF',
-#                        parameter = list(normalize = 'Z-score', 
-#                                         method = 'Cosine', 
-#                                         k = 25))
+#prediction function
 
 predict_cf = function(Rmat, user_MovieID, Rating){
   set.seed(100)
@@ -48,7 +42,7 @@ predict_cf = function(Rmat, user_MovieID, Rating){
                                            weighted = TRUE,
                                            nn = 25))
   
-  
+  #Create matrix row from user ratings
   user_movieIDs = user_MovieID
   renamed_user_movieIDs = paste0('m', user_movieIDs)
   full_movieID = colnames(Rmat)
@@ -62,6 +56,7 @@ predict_cf = function(Rmat, user_MovieID, Rating){
                       item=full_movieID
                     ))
   
+  #Insert user ratings into matrix row
   for (q in 1:length(renamed_user_movieIDs)){
     if(renamed_user_movieIDs[q]!= "m1" && renamed_user_movieIDs[q]!= "m2" && renamed_user_movieIDs[q]!= "m3" && renamed_user_movieIDs[q]!= "m4"){
       new.user[1,(renamed_user_movieIDs[q])] = Rating[q]
@@ -70,8 +65,7 @@ predict_cf = function(Rmat, user_MovieID, Rating){
   
   new.Rmat = as(new.user, 'realRatingMatrix')
   
-  #Instead, taking 1 user from existing data for test. When you will have real data, please substitute "getData(schema_1, "unknown")[2]" by your real Rating matrix.
-  
+  #make predictions
   recom = predict(rec_UBCF1 , new.Rmat, type="ratings")
   recom_list=as(recom, "list")
   df=data.frame(film=rownames(as.data.frame(recom_list)), rating= as.matrix(as.data.frame(recom_list)[,1]))
@@ -84,8 +78,5 @@ predict_cf = function(Rmat, user_MovieID, Rating){
     pred_id[i] = strtoi(substr(df[order(-df$rating),][i, 1], 2, film_str_length))
   }
   print(pred_id)
-  pred_id
+  pred_id #return movie IDs
 }
-
-  
-#(predict_cf(rec_UBCF1, schema_1))
